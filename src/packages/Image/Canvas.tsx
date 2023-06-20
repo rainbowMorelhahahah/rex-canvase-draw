@@ -26,6 +26,9 @@ function Canvas(props: DrawImageCanvasProps): JSX.Element {
 
     const handleMouseDown = (e: KonvaEventObject<PointerEvent>) => {
         requestAnimationFrame(() => {
+            if (selectedImage === null) {
+                return;
+            }
             isDown.current = true;
             const target = e.target;
             const stage = e.target.getStage();
@@ -46,7 +49,7 @@ function Canvas(props: DrawImageCanvasProps): JSX.Element {
 
     const handleMouseMove = (e: KonvaEventObject<PointerEvent>) => {
         requestAnimationFrame(() => {
-            if (!isDown.current) {
+            if (!isDown.current || selectedImage === null) {
                 return
             }
             const target = e.target;

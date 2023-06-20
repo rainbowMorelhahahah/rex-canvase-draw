@@ -112,7 +112,7 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
 
                 </LayerKonva>
 
-                {/* <LayerKonva
+                <LayerKonva
                     ref={layerRef}
                 >
                     <Group
@@ -135,7 +135,7 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
                             }}
                         />
                     </Group>
-                </LayerKonva> */}
+                </LayerKonva>
 
 
             </Stage>
