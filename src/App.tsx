@@ -1,15 +1,19 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import './App.css'
 import { RexDrawEdit, RexDrawStateRef } from './packages'
+import { DrawMode } from './packages/types';
 
 function App() {
   const editor = useRef<RexDrawStateRef>(null);
+  const [mode, setMode] = useState<DrawMode>(DrawMode.SELECT_MODE);
   return (
     <>
       <div>
         <button onClick={() => {
+          setMode(DrawMode.BRUSH_MODE)
         }}>画笔模式</button>
         <button onClick={() => {
+          setMode(DrawMode.SELECT_MODE)
         }}>选择模式</button>
         <button onClick={async () => {
           const url = await editor.current?.exportJpeg();
@@ -25,7 +29,7 @@ function App() {
         }}>导出图片</button>
       </div>
       <div style={{ height: "500px" }}>
-        <RexDrawEdit ref={editor} />
+        <RexDrawEdit mode={mode} ref={editor} />
       </div>
     </>
   )
