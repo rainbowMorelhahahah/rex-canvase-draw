@@ -9,14 +9,16 @@ interface DrawImageProps {
     url: string,
     isSelected?: boolean,
     onClick?: (evt: KonvaEventObject<PointerEvent>) => void,
-    onPointerMove?: (evt: KonvaEventObject<PointerEvent>) => void,
+    onPointerClick?: (evt: KonvaEventObject<PointerEvent>) => void,
+    onPointerMove?: (evt
+        : KonvaEventObject<PointerEvent>) => void,
     onDragEnd?: (evt: KonvaEventObject<DragEvent>) => void,
     draggable?: boolean
 }
 
 export const DrawImage: FC<DrawImageProps> = memo((props) => {
 
-    const { url, onClick, onPointerMove, onDragEnd, draggable } = props;
+    const { url, onClick, onPointerMove, onDragEnd, draggable, onPointerClick } = props;
 
     const imgRef = useRef<Image>(null);
 
@@ -26,9 +28,6 @@ export const DrawImage: FC<DrawImageProps> = memo((props) => {
 
 
 
-    const handleDragMove = (_evt: Konva.KonvaEventObject<DragEvent>) => {
-
-    }
 
     return (
         <React.Fragment>
@@ -38,14 +37,11 @@ export const DrawImage: FC<DrawImageProps> = memo((props) => {
                 image={image}
                 draggable={draggable}
                 opacity={rectOpacity}
-                onDragMove={handleDragMove}
-                onPointerClick={onClick}
+                onPointerClick={onPointerClick}
                 onPointerMove={onPointerMove}
                 onDragEnd={onDragEnd}
+                onClick={onClick}
             />
-
-
-
 
         </React.Fragment>
     );
