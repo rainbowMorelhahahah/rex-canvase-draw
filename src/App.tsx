@@ -2,8 +2,8 @@ import React, { useRef, useState } from 'react'
 import './App.css'
 import { RexDrawEdit, RexDrawStateRef } from './packages'
 import { DrawBrushColor, DrawBrushSize, DrawMode } from './packages/types';
-import { RexColorPicker } from './Components/ColorPicker';
 import { Color } from '@rc-component/color-picker';
+import { Layout } from './components/layout/Layout';
 
 function App() {
   const editor = useRef<RexDrawStateRef>(null);
@@ -15,7 +15,7 @@ function App() {
 
   return (
     <>
-      <div>
+      {/* <div>
         <button onClick={() => {
           setMode(DrawMode.BRUSH_MODE)
         }}>画笔模式</button>
@@ -49,16 +49,7 @@ function App() {
             setBrusSize(Number(value));
           }} />
         </label>
-
-        <div style={{ display: 'inline-block' }}>
-          <RexColorPicker
-            color={brushColor}
-            onChange={color => {
-              setBurshColor(color);
-            }}
-          />
-        </div>
-
+     
 
       </div>
       <div style={{ height: "500px" }}>
@@ -67,7 +58,53 @@ function App() {
           brushSize={brushSize}
           mode={mode}
           ref={editor} />
-      </div>
+      </div> */}
+
+      <Layout>
+        <main className='flex w-full h-[calc(100%-56px)]'>
+          <section className='flex-auto h-full'>
+            <RexDrawEdit
+              brushColor={brushColor}
+              brushSize={brushSize}
+              mode={mode}
+            />
+          </section>
+          <aside className='w-[367px] bg-[#151515] flex'>
+            <div className='flex-auto flex flex-col justify-between'>
+              <section className='flex-auto'>
+                <header className='flex justify-between text-white p-[16px]'>
+                  <h2>
+                    <small>Icon</small>
+                    Create
+                  </h2>
+                  <i>
+                    Close
+                  </i>
+                </header>
+
+                <form>
+                  <p>AI-driven visualization tool for quick product variations, sketches, and renderings.</p>
+                  
+                </form>
+
+              </section>
+              <footer className='p-[16px]'>
+                <button className='h-[45px] bg-blue-300 rounded-lg w-full'>Create</button>
+              </footer>
+            </div>
+            <div className='w-[48px] bg-[#151515] border-l-[1px] border-[#98989b] border-solid flex flex-col justify-between items-center'>
+              <nav className='text-white'>
+                <a href='javascript:void(0);'>ai</a>
+                <a href='javascript:void(0);'>图层</a>
+              </nav>
+              <nav className='text-white'>
+                <a href='javascript:void(0);'>帮助</a>
+              </nav>
+            </div>
+          </aside>
+        </main>
+      </Layout>
+
     </>
   )
 }
