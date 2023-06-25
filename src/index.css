@@ -1,5 +1,6 @@
 html,
-body,#root {
+body,
+#root {
   width: 100% !important;
   height: 100% !important;
 }
@@ -7,3 +8,13 @@ body,#root {
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 在样式文件中定义 Tailwind CSS 的类名 */
+.btn {
+  @apply bg-blue-500 text-white;
+}
+
+/* 在 Ant Design 的样式文件中使用 Tailwind CSS 的类名 */
+.ant-btn-primary {
+  @apply btn;
+}

@@ -4,10 +4,15 @@ import { RexDrawEdit, RexDrawStateRef } from './packages'
 import { DrawBrushColor, DrawBrushSize, DrawMode } from './packages/types';
 import { Color } from '@rc-component/color-picker';
 import { Layout } from './components/layout/Layout';
+import { Aside } from './components/layout/Aside';
+import { useDrawStore } from './stores';
+
 
 function App() {
   const editor = useRef<RexDrawStateRef>(null);
-  const [mode, setMode] = useState<DrawMode>(DrawMode.SELECT_MODE);
+
+  const { drawMode } = useDrawStore();
+
   const [brushColor, setBurshColor] = useState<DrawBrushColor>(
     new Color('#333')
   );
@@ -61,47 +66,15 @@ function App() {
       </div> */}
 
       <Layout>
-        <main className='flex w-full h-[calc(100%-56px)]'>
+        <main className='flex w-full h-[calc(100%-46px)]'>
           <section className='flex-auto h-full'>
             <RexDrawEdit
               brushColor={brushColor}
               brushSize={brushSize}
-              mode={mode}
+              mode={drawMode}
             />
           </section>
-          <aside className='w-[367px] bg-[#151515] flex'>
-            <div className='flex-auto flex flex-col justify-between'>
-              <section className='flex-auto'>
-                <header className='flex justify-between text-white p-[16px]'>
-                  <h2>
-                    <small>Icon</small>
-                    Create
-                  </h2>
-                  <i>
-                    Close
-                  </i>
-                </header>
-
-                <form>
-                  <p>AI-driven visualization tool for quick product variations, sketches, and renderings.</p>
-                  
-                </form>
-
-              </section>
-              <footer className='p-[16px]'>
-                <button className='h-[45px] bg-blue-300 rounded-lg w-full'>Create</button>
-              </footer>
-            </div>
-            <div className='w-[48px] bg-[#151515] border-l-[1px] border-[#98989b] border-solid flex flex-col justify-between items-center'>
-              <nav className='text-white'>
-                <a href='javascript:void(0);'>ai</a>
-                <a href='javascript:void(0);'>图层</a>
-              </nav>
-              <nav className='text-white'>
-                <a href='javascript:void(0);'>帮助</a>
-              </nav>
-            </div>
-          </aside>
+          <Aside />
         </main>
       </Layout>
 

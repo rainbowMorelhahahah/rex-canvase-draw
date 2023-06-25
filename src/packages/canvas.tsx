@@ -2,15 +2,13 @@
 import React, { memo, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { Stage, Layer as LayerKonva, Rect, Group, Line, Transformer as TransformerKonva } from 'react-konva';
-import { DrawImage } from './Image';
 import { Layer } from 'konva/lib/Layer';
 import Konva from 'konva';
 import { KonvaEventObject } from 'konva/lib/Node';
 import { DrawLine, DrawMode } from './types';
-import { Transformer } from 'konva/lib/shapes/Transformer';
 import { Color } from '@rc-component/color-picker';
-import { LineConfig } from 'konva/lib/shapes/Line';
-
+import throttle from 'lodash/throttle'
+import { DrawImage } from './Image';
 
 const CanvasBox = styled.div`
     width: 100%;
@@ -27,6 +25,10 @@ export type RexDrawStateRef = {
     exportJpeg: () => Promise<string>;
 }
 
+const throttleFn = throttle((fn) => {
+    fn()
+}, 375, { trailing: false });
+
 
 const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props, ref) => {
 
@@ -35,8 +37,6 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
     const divRef = useRef<HTMLDivElement>(null);
     const stageRef = useRef<Konva.Stage | null>(null);
     const layerRef = useRef<Layer | null>(null);
-    const tfRef = useRef<Transformer>();
-
 
     const [stageSize, setStageSize] = useState({
         width: 0,
@@ -47,6 +47,7 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
     const canvasHeight = stageSize.height || 0;
 
     const [selectedImage, setSelectedImage] = useState<any>(null);
+    const [image, setImage] = useState<CanvasImageSource>();
 
     const layerWidth = canvasWidth * 0.7;
     const layerHeight = canvasHeight * 0.7;
@@ -99,31 +100,27 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
 
     function handleMouseDown(e: KonvaEventObject<PointerEvent>) {
 
-
         if (shouldDrawingMode) {
-            if (selectedImage !== null) {
-                isDrawing.current = true;
-                setLines((pre) => {
-                    const pos = e.target.getStage()?.getPointerPosition()!;
-                    return [
-                        ...pre,
-                        {
-                            points: [pos.x - offsetX, pos.y - offsetY],
-                            brushColor,
-                            brushSize,
-                            drawMode: shouldBrushOrEraser
-                        }
-                    ]
-                })
-            }
+            isDrawing.current = true;
+            setLines((pre) => {
+                const pos = e.target.getStage()?.getPointerPosition()!;
+                return [
+                    ...pre,
+                    {
+                        points: [pos.x - offsetX, pos.y - offsetY],
+                        brushColor,
+                        brushSize,
+                        drawMode: shouldBrushOrEraser
+                    }
+                ]
+            })
         }
-
 
     }
 
     function handleMouseMove(e: KonvaEventObject<PointerEvent>) {
         if (shouldDrawingMode) {
-            if (isDrawing.current && selectedImage !== null) {
+            if (isDrawing.current) {
                 const stage = stageRef.current?.getStage()!;
                 const point = stage.getPointerPosition();
                 const lastLine = lines[lines.length - 1];
@@ -141,24 +138,37 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
     function handleMouseUp() {
         isDrawing.current = false;
         // 鼠标弹起的时候需要合并一直新的图片
-
+        throttleFn(() => {
+            requestAnimationFrame(() => {
+                if (shouldDrawingMode) {
+                    layerRef.current?.toBlob(
+                        {
+                            x: offsetX,
+                            y: offsetY,
+                            width: layerWidth,
+                            height: layerHeight,
+                            mimeType: 'image/jpg',
+                            quality: 1,
+                            callback(blob) {
+                                console.log(blob)
+                                const img = new window.Image();
+                                img.onload = () => {
+                                    setImage(img);
+                                    layerRef.current?.batchDraw();
+                                    setLines([]);
+                                }
+                                img.src = URL.createObjectURL(blob);
+                            },
+                        }
+                    )
+                }
+            })
+        })
     }
 
     function handleSelectItem(node: Konva.Node) {
         if (mode !== DrawMode.SELECT_MODE) return;
-
-        console.log(node.attrs)
-        // 如果是Line 对象需要做点处理, 由于工作量原因,我期望Line 不要做拖拽的功能 
-        if (node.className === "Line") {
-            return;
-            // if ((node.attrs as LineConfig).globalCompositeOperation === 'destination-out') {
-            //     return;
-            // }
-        }
-
-        setSelectedImage(node)
-        tfRef.current?.nodes([node]);
-        tfRef.current?.getLayer()?.batchDraw();
+        setSelectedImage(node);
     }
 
     return (
@@ -178,9 +188,7 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
                 onPointerUp={handleMouseUp}
             >
 
-                <LayerKonva
-                    ref={layerRef}
-                >
+                <LayerKonva>
                     <Group
                         x={offsetX}
                         y={offsetY}
@@ -201,11 +209,10 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
                         y={offsetY}
                     >
                         <DrawImage
-                            url='https://konvajs.org/assets/yoda.jpg'
-                            onDragEnd={(evt) => setSelectedImage(evt.target)}
+                            image={image}
                             draggable={mode === DrawMode.SELECT_MODE}
                             onPointerClick={(e: KonvaEventObject<PointerEvent>) => {
-                                handleSelectItem(e.target)
+                                handleSelectItem(e.currentTarget)
                             }}
                         />
 
@@ -213,7 +220,6 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
                             lines.map((line, idx) => {
                                 return (
                                     <Line
-                                        // draggable={mode === DrawMode.SELECT_MODE && line.drawMode === 'source-over'}
                                         draggable={false}
                                         key={`line-${idx}`}
                                         points={line.points}
@@ -222,20 +228,42 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
                                         lineCap='round'
                                         lineJoin='round'
                                         globalCompositeOperation={line.drawMode}
-                                        onPointerClick={(e: KonvaEventObject<PointerEvent>) => {
-                                            handleSelectItem(e.target)
-                                        }}
                                     />
                                 )
                             })
                         }
-                        < TransformerKonva
-                            visible={selectedImage !== null}
-                            ref={tfRef as any}
-                            boundBoxFunc={(_oldBox, newBox) => {
-                                return newBox
-                            }}
-                        />
+
+                        {
+                            selectedImage && (
+                                <TransformerKonva
+                                    node={selectedImage}
+                                    keepRatio={false}
+                                    ref={(node) => {
+                                        if (node) {
+                                            node.getLayer()?.batchDraw();
+                                        }
+                                    }}
+                                    boundBoxFunc={(_oldBox, newBox) => {
+                                        return newBox
+                                    }}
+                                    onDragEnd={() => {
+                                        layerRef.current?.toBlob(
+                                            {
+                                                x: offsetX,
+                                                y: offsetY,
+                                                width: layerWidth,
+                                                height: layerHeight,
+                                                callback(blob) {
+                                                    // setUri(URL.createObjectURL(blob))
+                                                    setLines([]);
+                                                },
+                                            }
+                                        )
+                                    }}
+                                />
+                            )
+                        }
+
                     </Group>
                 </LayerKonva>
 
