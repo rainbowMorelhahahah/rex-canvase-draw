@@ -228,7 +228,10 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
                                         lineCap='round'
                                         lineJoin='round'
                                         globalCompositeOperation={line.drawMode}
+                                        tension={0.5}
                                     />
+
+
                                 )
                             })
                         }

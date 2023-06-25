@@ -16,7 +16,7 @@ function App() {
   const [brushColor, setBurshColor] = useState<DrawBrushColor>(
     new Color('#333')
   );
-  const [brushSize, setBrusSize] = useState<DrawBrushSize>(10);
+  const [brushSize, setBrusSize] = useState<DrawBrushSize>(30);
 
   return (
     <>
