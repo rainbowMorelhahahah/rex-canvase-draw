@@ -6,7 +6,7 @@ type LayoutProps = {
 function HeaderImpl(props: LayoutProps) {
     const { children } = props;
     return (
-        <div className="flex flex-col h-[56px]">
+        <div className="flex flex-col h-[56px] bg-[#151515]">
             {children}
         </div>
     );
