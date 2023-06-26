@@ -11,7 +11,7 @@ function App() {
 
   const { drawMode, brushSetting, eraserSetting, } = useDrawStore();
   const { layres, selected, setImage } = useLayerStore();
-  const { addLayer } = useLayerStore();
+  const { addLayer, updateLinePoints, getLinePoints } = useLayerStore();
 
   useEffect(() => {
     addLayer()
@@ -48,6 +48,36 @@ function App() {
               onDrawImage={(imgSrc, imgBlob, img) => {
                 if (!selected) return;
                 setImage(selected, imgBlob, imgSrc, img);
+              }}
+              onPointerDown={(newPos, _e) => {
+                if (selected) {
+                  const current = getLinePoints(selected)
+                  if (current) {
+                    updateLinePoints(
+                      selected,
+                      [
+                        ...current,
+                        newPos
+                      ])
+                  }
+                }
+              }}
+              onPointerMove={(newPos, _e) => {
+                if (selected) {
+                  const current = getLinePoints(selected);
+                  if (current) {
+                    const lastLine = current[current.length - 1];
+                    lastLine.points = lastLine.points.concat(newPos);
+                    current.splice(current.length - 1, 1, lastLine);
+                    updateLinePoints(selected, current.concat());
+                  }
+                }
+
+              }}
+              onPointerUp={() => {
+                if (selected) {
+                  updateLinePoints(selected, []);
+                }
               }}
             />
           </section>

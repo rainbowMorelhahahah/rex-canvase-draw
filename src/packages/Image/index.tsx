@@ -1,10 +1,10 @@
-import React, { FC, memo, useRef } from "react"
-import useImage from 'use-image'
+import React, { FC, Key, memo, useRef } from "react"
 import { Image as ImageKonva } from 'react-konva'
 import { Image } from "konva/lib/shapes/Image"
 import { KonvaEventObject } from "konva/lib/Node"
 
 interface DrawImageProps {
+    uuid?: Key,
     image?: CanvasImageSource,
     url?: string,
     isSelected?: boolean,
@@ -16,9 +16,8 @@ interface DrawImageProps {
     draggable?: boolean
 }
 
-export const DrawImage: FC<DrawImageProps> = memo((props) => {
-
-    const { image, url, onClick, onPointerMove, onDragEnd, draggable = false, onPointerClick } = props;
+function DrawImageImpl(props: DrawImageProps) {
+    const { image, onClick, onPointerMove, onDragEnd, draggable = false, onPointerClick } = props;
 
     const imgRef = useRef<Image>(null);
 
@@ -35,6 +34,8 @@ export const DrawImage: FC<DrawImageProps> = memo((props) => {
             />
         </React.Fragment>
     );
+}
 
-})
+
+export const DrawImage: FC<DrawImageProps> = memo(DrawImageImpl);
 

@@ -1,6 +1,6 @@
-import React, { memo, useCallback, useMemo, useState } from "react";
-import { RgbColorPicker, RgbColor } from 'react-colorful';
-import { Form, Popover, Slider, Tooltip } from 'antd';
+import React, { memo, useMemo } from "react";
+import { RgbColorPicker } from 'react-colorful';
+import { Form, Popover, Slider } from 'antd';
 import { useDrawStore } from "../../stores";
 import { DrawMode } from "../../packages/types";
 
@@ -178,6 +178,7 @@ function HeaderImpl(props: LayoutProps) {
                     options.map((o) => {
                         return (
                             <HeaderToolIcon
+                                key={o.value}
                                 help={o.help}
                                 content={o.content}
                                 selected={isSelectedMode(o.value)}

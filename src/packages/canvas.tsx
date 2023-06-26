@@ -3,13 +3,14 @@ import React, { Key, memo, useEffect, useImperativeHandle, useMemo, useRef, useS
 import styled from 'styled-components';
 import {
     Stage,
-    Layer as LayerKonva,
     Rect,
     Group,
     Line,
     Transformer as TransformerKonva,
-    Circle
+    Circle,
+    Layer as LayerKonva
 } from 'react-konva';
+// import { Layer as LayerKonva } from '../components/layer'
 import { Layer } from 'konva/lib/Layer';
 import Konva from 'konva';
 import { KonvaEventObject } from 'konva/lib/Node';
@@ -38,6 +39,9 @@ type RexDrawStateProps = {
     layers: DrawLayer[],
     currentLayerId?: Key,
     onDrawImage?: (imgSrc: string, imgBlob: Blob, img: CanvasImageSource) => void;
+    onPointerDown?: (line: DrawLine, e: KonvaEventObject<PointerEvent>) => void;
+    onPointerMove?: (newPos: [number, number], e: KonvaEventObject<PointerEvent>) => void;
+    onPointerUp?: (e: KonvaEventObject<PointerEvent>) => void;
 }
 export type RexDrawStateRef = {
     layerNode: Layer;
@@ -52,6 +56,7 @@ const throttleFn = throttle((fn) => {
 const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props, ref) => {
 
     const { mode, brushSetting, eraserSetting, onDrawImage, layers, currentLayerId } = props;
+    const { onPointerMove, onPointerDown, onPointerUp } = props;
 
     const divRef = useRef<HTMLDivElement>(null);
     const stageRef = useRef<Konva.Stage | null>(null);
@@ -73,7 +78,6 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
     const canvasHeight = stageSize.height || 0;
 
     const [selectedImage, setSelectedImage] = useState<any>(null);
-    const [image, setImage] = useState<CanvasImageSource>();
 
     const layerWidth = canvasWidth * 0.7;
     const layerHeight = canvasHeight * 0.7;
@@ -82,7 +86,6 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
     const offsetY = (stageSize.height - layerHeight) / 2;
 
     const isDrawing = useRef<boolean>(false);
-    const [lines, setLines] = useState<DrawLine[]>([]);
 
 
     useImperativeHandle(ref, () => {
@@ -137,22 +140,28 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
             isDrawing.current = true;
 
             const isBrush = mode === DrawMode.BRUSH_MODE
+            const pos = e.target.getStage()?.getPointerPosition()!;
+            const { color, size, opacity } = brushSetting;
+            const { size: eSize, opacity: eOpacity } = eraserSetting;
 
-            setLines((pre) => {
-                const pos = e.target.getStage()?.getPointerPosition()!;
-                const { color, size, opacity } = brushSetting;
-                const { size: eSize, opacity: eOpacity } = eraserSetting;
-                return [
-                    ...pre,
-                    {
-                        points: [pos.x - offsetX, pos.y - offsetY],
-                        brushColor: color,
-                        brushSize: isBrush ? size : eSize,
-                        drawMode: shouldBrushOrEraser,
-                        opacity: isBrush ? opacity : eOpacity
-                    }
-                ]
-            })
+            onPointerDown?.(
+                {
+                    points: [pos.x - offsetX, pos.y - offsetY],
+                    brushColor: color,
+                    brushSize: isBrush ? size : eSize,
+                    drawMode: shouldBrushOrEraser,
+                    opacity: isBrush ? opacity : eOpacity
+                },
+                e
+            )
+
+            // setLines((pre) => {
+
+            //     return [
+            //         ...pre,
+
+            //     ]
+            // })
         }
 
     }
@@ -169,19 +178,24 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
         if (shouldDrawingMode) {
             if (isDrawing.current) {
 
-                const lastLine = lines[lines.length - 1];
+                // const lastLine = lines[lines.length - 1];
 
-                lastLine.points = lastLine.points.concat(
-                    [point!.x - offsetX, point!.y - offsetY]
+                // lastLine.points = lastLine.points.concat(
+                //     [point!.x - offsetX, point!.y - offsetY]
+                // )
+
+                // lines.splice(lines.length - 1, 1, lastLine);
+                // setLines(lines.concat());
+                // onPointerMove?.(e);
+                onPointerMove?.(
+                    [point!.x - offsetX, point!.y - offsetY],
+                    e
                 )
-
-                lines.splice(lines.length - 1, 1, lastLine);
-                setLines(lines.concat());
             }
         }
     }
 
-    function handleMouseUp() {
+    const handleMouseUp = (e: KonvaEventObject<PointerEvent>) => {
         isDrawing.current = false;
         // 鼠标弹起的时候需要合并一直新的图片
         throttleFn(() => {
@@ -198,15 +212,15 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
                             callback(blob) {
                                 const img = new window.Image();
                                 img.onload = () => {
-                                    setImage(img);
+                                    onDrawImage?.(src, blob, img);
                                     layerRef.current?.batchDraw();
                                     setTimeout(() => {
-                                        setLines([]);
+                                        onPointerUp?.(e);
                                     }, 0)
                                 }
                                 const src = URL.createObjectURL(blob);
                                 img.src = src;
-                                onDrawImage?.(src, blob, img);
+
                             },
                         }
                     )
@@ -261,8 +275,12 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
 
                 {
                     layers.map((item) => {
+                        console.log(item)
                         return (
                             <LayerKonva
+                                opacity={item.opacity !== undefined ? item.opacity / 100 : 1}
+                                key={item.uuid}
+                                visible={item.visible}
                                 ref={(node) => {
                                     if (node === null) return;
 
@@ -282,15 +300,15 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
                                     y={offsetY}
                                 >
                                     <DrawImage
+                                        uuid={item.uuid}
                                         image={item.img}
                                         draggable={mode === DrawMode.SELECT_MODE}
                                         onPointerClick={(e: KonvaEventObject<PointerEvent>) => {
                                             handleSelectItem(e.currentTarget)
                                         }}
                                     />
-
                                     {
-                                        lines.map((line, idx) => {
+                                        item.linePost?.map((line, idx) => {
                                             return (
                                                 <Line
                                                     draggable={false}
@@ -329,7 +347,6 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
                                                             height: layerHeight,
                                                             callback(blob) {
                                                                 // setUri(URL.createObjectURL(blob))
-                                                                setLines([]);
                                                             },
                                                         }
                                                     )

@@ -5,7 +5,7 @@ import { useLayerStore } from '../../../stores';
 
 function LayerManageImpl() {
 
-    const { layres, addLayer, handleSelectLayer } = useLayerStore();
+    const { layres, addLayer, handleSelectLayer, setVisible, clone, delete: deleteLayer, setOpacity } = useLayerStore();
 
     return (
         <article className='p-4'>
@@ -41,18 +41,29 @@ function LayerManageImpl() {
 
                 {
                     layres.map((item) => {
+                        const uuid = item.uuid as string;
                         return (
                             <LayerItem
                                 key={item.uuid}
                                 {...item}
                                 onSelect={() => handleSelectLayer(item.uuid!)}
+                                onVisible={() => {
+                                    setVisible(uuid, !item.visible);
+                                }}
+                                onCopy={() => {
+                                    clone(uuid);
+                                }}
+                                onDelete={() => {
+                                    deleteLayer(uuid);
+                                }}
+                                onChangeOpacity={(v: number) => {
+                                    setOpacity(uuid, v);
+                                }}
                             />
                         )
                     })
                 }
-
             </div>
-
         </article>
     )
 }
