@@ -1,5 +1,5 @@
 
-import React, { memo, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import React, { Key, memo, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import {
     Stage,
@@ -17,6 +17,7 @@ import { DrawLine, DrawMode } from './types';
 import throttle from 'lodash/throttle'
 import { DrawImage } from './Image';
 import { RgbColor } from 'react-colorful';
+import { Layer as DrawLayer } from '../packages/types';
 
 const CanvasBox = styled.div`
     width: 100%;
@@ -33,7 +34,10 @@ type RexDrawStateProps = {
     eraserSetting: {
         size: number,
         opacity: number
-    }
+    },
+    layers: DrawLayer[],
+    currentLayerId?: Key,
+    onDrawImage?: (imgSrc: string, imgBlob: Blob, img: CanvasImageSource) => void;
 }
 export type RexDrawStateRef = {
     layerNode: Layer;
@@ -47,11 +51,13 @@ const throttleFn = throttle((fn) => {
 
 const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props, ref) => {
 
-    const { mode, brushSetting, eraserSetting } = props;
+    const { mode, brushSetting, eraserSetting, onDrawImage, layers, currentLayerId } = props;
 
     const divRef = useRef<HTMLDivElement>(null);
     const stageRef = useRef<Konva.Stage | null>(null);
-    const layerRef = useRef<Layer | null>(null);
+    const layerRef = useRef<Layer | null | undefined>(null);
+
+    const layerMap = useRef<Map<string, Layer | null>>(new Map())
 
     const [stageSize, setStageSize] = useState({
         width: 0,
@@ -109,6 +115,14 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
             height: divRef.current!.getBoundingClientRect().height
         })
     }, [])
+
+    useEffect(() => {
+        if (!currentLayerId) return;
+        const keys = Array.from(layerMap.current.keys());
+        const key = keys.filter(v => v.includes(currentLayerId as string)).shift();
+        if (key === undefined) return;
+        layerRef.current = layerMap.current.get(key);
+    }, [currentLayerId])
 
     const shouldDrawingMode = useMemo(() => {
         return [DrawMode.BRUSH_MODE, DrawMode.ERASER_MODE].includes(mode);
@@ -182,14 +196,17 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
                             mimeType: 'image/jpg',
                             quality: 1,
                             callback(blob) {
-                                console.log(blob)
                                 const img = new window.Image();
                                 img.onload = () => {
                                     setImage(img);
                                     layerRef.current?.batchDraw();
-                                    setLines([]);
+                                    setTimeout(() => {
+                                        setLines([]);
+                                    }, 0)
                                 }
-                                img.src = URL.createObjectURL(blob);
+                                const src = URL.createObjectURL(blob);
+                                img.src = src;
+                                onDrawImage?.(src, blob, img);
                             },
                         }
                     )
@@ -242,72 +259,90 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
                     />
                 </LayerKonva>
 
-                <LayerKonva
-                    ref={layerRef}
-                >
-                    <Group
-                        x={offsetX}
-                        y={offsetY}
-                    >
-                        <DrawImage
-                            image={image}
-                            draggable={mode === DrawMode.SELECT_MODE}
-                            onPointerClick={(e: KonvaEventObject<PointerEvent>) => {
-                                handleSelectItem(e.currentTarget)
-                            }}
-                        />
+                {
+                    layers.map((item) => {
+                        return (
+                            <LayerKonva
+                                ref={(node) => {
+                                    if (node === null) return;
 
-                        {
-                            lines.map((line, idx) => {
-                                return (
-                                    <Line
-                                        draggable={false}
-                                        key={`line-${idx}`}
-                                        points={line.points}
-                                        strokeWidth={line.brushSize}
-                                        stroke={`rgba(${line.brushColor.r},${line.brushColor.g},${line.brushColor.b},${line.opacity / 100})`}
-                                        lineCap='round'
-                                        lineJoin='round'
-                                        globalCompositeOperation={line.drawMode}
-                                        tension={0.1}
+                                    const id = node?._id!;
+                                    const keys = Array.from(layerMap.current.keys()).map(v => {
+                                        const _id = v.substring(v.lastIndexOf('-'), v.length);
+                                        return _id;
+                                    })
+                                    const include = keys.includes(id?.toString());
+                                    if (!include) {
+                                        layerMap.current.set(`${item.uuid}-${id}`, node);
+                                    }
+                                }}
+                            >
+                                <Group
+                                    x={offsetX}
+                                    y={offsetY}
+                                >
+                                    <DrawImage
+                                        image={item.img}
+                                        draggable={mode === DrawMode.SELECT_MODE}
+                                        onPointerClick={(e: KonvaEventObject<PointerEvent>) => {
+                                            handleSelectItem(e.currentTarget)
+                                        }}
                                     />
-                                )
-                            })
-                        }
 
-                        {
-                            selectedImage && (
-                                <TransformerKonva
-                                    node={selectedImage}
-                                    keepRatio={false}
-                                    ref={(node) => {
-                                        if (node) {
-                                            node.getLayer()?.batchDraw();
-                                        }
-                                    }}
-                                    boundBoxFunc={(_oldBox, newBox) => {
-                                        return newBox
-                                    }}
-                                    onDragEnd={() => {
-                                        layerRef.current?.toBlob(
-                                            {
-                                                x: offsetX,
-                                                y: offsetY,
-                                                width: layerWidth,
-                                                height: layerHeight,
-                                                callback(blob) {
-                                                    // setUri(URL.createObjectURL(blob))
-                                                    setLines([]);
-                                                },
-                                            }
+                                    {
+                                        lines.map((line, idx) => {
+                                            return (
+                                                <Line
+                                                    draggable={false}
+                                                    key={`line-${idx}`}
+                                                    points={line.points}
+                                                    strokeWidth={line.brushSize}
+                                                    stroke={`rgba(${line.brushColor.r},${line.brushColor.g},${line.brushColor.b},${line.opacity / 100})`}
+                                                    lineCap='round'
+                                                    lineJoin='round'
+                                                    globalCompositeOperation={line.drawMode}
+                                                    tension={0.1}
+                                                />
+                                            )
+                                        })
+                                    }
+
+                                    {
+                                        selectedImage && (
+                                            <TransformerKonva
+                                                node={selectedImage}
+                                                keepRatio={false}
+                                                ref={(node) => {
+                                                    if (node) {
+                                                        node.getLayer()?.batchDraw();
+                                                    }
+                                                }}
+                                                boundBoxFunc={(_oldBox, newBox) => {
+                                                    return newBox
+                                                }}
+                                                onDragEnd={() => {
+                                                    layerRef.current?.toBlob(
+                                                        {
+                                                            x: offsetX,
+                                                            y: offsetY,
+                                                            width: layerWidth,
+                                                            height: layerHeight,
+                                                            callback(blob) {
+                                                                // setUri(URL.createObjectURL(blob))
+                                                                setLines([]);
+                                                            },
+                                                        }
+                                                    )
+                                                }}
+                                            />
                                         )
-                                    }}
-                                />
-                            )
-                        }
+                                    }
 
-                    </Group>
-                </LayerKonva>
+                                </Group>
+                            </LayerKonva>
+                        )
+                    })
+                }
 
             </Stage>
         </CanvasBox>

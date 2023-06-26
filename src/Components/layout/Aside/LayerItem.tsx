@@ -1,19 +1,27 @@
 import { memo } from "react";
 import './layer-item.css';
+import { Layer } from "../../../packages/types";
 
-function LayerItemMome() {
+type LayerProps = Layer & {
+    onSelect?: () => void;
+}
+
+function LayerItemMome(props: LayerProps) {
+
+    const { name, opacity, imageSrc, onSelect } = props;
+
     return (
-        <div className="flex flex-col">
-            <div className="flex-auto grid gap-3 grid-cols-3 group">
+        <div className="flex flex-col mb-2">
+            <div className="flex-auto grid gap-3 grid-cols-3 group" onClick={onSelect}>
                 <div className="repeating overflow-hidden h-11 rounded">
-
+                    <img src={imageSrc} className="aspect-[1.77778/1] w-full h-full object-contain" />
                 </div>
                 <div className="min-w-0 flex justify-center gap-2 flex-col text-[12px]">
                     <div className="flex m-[-2px_0px_-1px] leading-[15px]">
-                        Layer1
+                        {name}
                     </div>
                     <div className="flex items-center gap-2 text-[rgb(152,152,152)] cursor-pointer">
-                        <span className="text-[12px]">100%</span>
+                        <span className="text-[12px]">{opacity}%</span>
                         <span className="text-[12px]">Normal</span>
                         <button className="invisible group-hover:visible">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="#333"><path fill="none" d="M0 0h24v24H0z"></path><path d="M12 13.172l4.95-4.95 1.414 1.414L12 16 5.636 9.636 7.05 8.222z"></path></svg>

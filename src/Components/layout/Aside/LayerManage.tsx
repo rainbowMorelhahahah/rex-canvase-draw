@@ -1,8 +1,12 @@
 import { Tooltip } from 'antd';
 import { memo } from 'react';
 import { LayerItem } from '.';
+import { useLayerStore } from '../../../stores';
 
 function LayerManageImpl() {
+
+    const { layres, addLayer, handleSelectLayer } = useLayerStore();
+
     return (
         <article className='p-4'>
             <div className='flex justify-between items-center mb-4'>
@@ -13,28 +17,40 @@ function LayerManageImpl() {
                     Layers
                 </div>
                 <button>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="#333" width="24" height="24" fill="#333"><path d="M6 6L18 18" fill="none" stroke-width="1.04762" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 6L6 18" fill="none" stroke-width="1.04762" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="#333" width="24" height="24" fill="#333"><path d="M6 6L18 18" fill="none" strokeWidth="1.04762" strokeLinecap="round" strokeLinejoin="round"></path><path d="M18 6L6 18" fill="none" strokeWidth="1.04762" strokeLinecap="round" strokeLinejoin="round"></path></svg>
                 </button>
             </div>
             <div className='flex justify-end gap-2'>
                 <div className='flex h-full relative'>
                     <Tooltip title='导入图片'>
                         <button>
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="#333" width="24" height="24" fill="#333"><path d="M7 10L3 16.5V17.5C3 18.6046 3.89543 19.5 5 19.5H18C19.1046 19.5 20 18.6046 20 17.5V17L15.8007 13.3172C15.5987 13.1401 15.2929 13.1542 15.1081 13.3492L13.1166 15.4505C12.6358 15.9578 11.796 15.8279 11.491 15.1989L8 10C7.83131 9.65214 7.21445 9.67832 7 10Z" stroke="none"></path><path d="M3 16.5V7.5C3 6.39543 3.89543 5.5 5 5.5H14M3 16.5L7 10M3 16.5V17.5M20 17V11M20 17V17.5M20 17L15.8007 13.3172M18 11V11C15.7909 11 14 9.20914 14 7V7M18 11V11C20.2091 11 22 9.20914 22 7V7M18 11C20.2091 11 22 9.20914 22 7M18 11C15.7909 11 14 9.20914 14 7M16 7L17.5 5.5M16 7L17.5 8.5M16 7H20M7 10C7.21445 9.67832 7.83131 9.65214 8 10M7 10L7.14645 9.85355C7.34171 9.65829 7.65829 9.65829 7.85355 9.85355L8 10M3 17.5C3 18.6046 3.89543 19.5 5 19.5M3 17.5V17.5C3 18.6046 3.89543 19.5 5 19.5V19.5M5 19.5H18M18 19.5C19.1046 19.5 20 18.6046 20 17.5M18 19.5V19.5C19.1046 19.5 20 18.6046 20 17.5V17.5M15.8007 13.3172C15.5987 13.1401 15.2929 13.1542 15.1081 13.3492M15.8007 13.3172V13.3172C15.5987 13.1401 15.2929 13.1542 15.1081 13.3492V13.3492M15.1081 13.3492L13.1166 15.4505M13.1166 15.4505C12.6358 15.9578 11.796 15.8279 11.491 15.1989M13.1166 15.4505V15.4505C12.6358 15.9578 11.796 15.8279 11.491 15.1989V15.1989M11.491 15.1989L8 10M22 7C22 4.79086 20.2091 3 18 3M22 7V7C22 4.79086 20.2091 3 18 3V3M18 3C15.7909 3 14 4.79086 14 7M18 3V3C15.7909 3 14 4.79086 14 7V7" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="#333" width="24" height="24" fill="#333"><path d="M7 10L3 16.5V17.5C3 18.6046 3.89543 19.5 5 19.5H18C19.1046 19.5 20 18.6046 20 17.5V17L15.8007 13.3172C15.5987 13.1401 15.2929 13.1542 15.1081 13.3492L13.1166 15.4505C12.6358 15.9578 11.796 15.8279 11.491 15.1989L8 10C7.83131 9.65214 7.21445 9.67832 7 10Z" stroke="none"></path><path d="M3 16.5V7.5C3 6.39543 3.89543 5.5 5 5.5H14M3 16.5L7 10M3 16.5V17.5M20 17V11M20 17V17.5M20 17L15.8007 13.3172M18 11V11C15.7909 11 14 9.20914 14 7V7M18 11V11C20.2091 11 22 9.20914 22 7V7M18 11C20.2091 11 22 9.20914 22 7M18 11C15.7909 11 14 9.20914 14 7M16 7L17.5 5.5M16 7L17.5 8.5M16 7H20M7 10C7.21445 9.67832 7.83131 9.65214 8 10M7 10L7.14645 9.85355C7.34171 9.65829 7.65829 9.65829 7.85355 9.85355L8 10M3 17.5C3 18.6046 3.89543 19.5 5 19.5M3 17.5V17.5C3 18.6046 3.89543 19.5 5 19.5V19.5M5 19.5H18M18 19.5C19.1046 19.5 20 18.6046 20 17.5M18 19.5V19.5C19.1046 19.5 20 18.6046 20 17.5V17.5M15.8007 13.3172C15.5987 13.1401 15.2929 13.1542 15.1081 13.3492M15.8007 13.3172V13.3172C15.5987 13.1401 15.2929 13.1542 15.1081 13.3492V13.3492M15.1081 13.3492L13.1166 15.4505M13.1166 15.4505C12.6358 15.9578 11.796 15.8279 11.491 15.1989M13.1166 15.4505V15.4505C12.6358 15.9578 11.796 15.8279 11.491 15.1989V15.1989M11.491 15.1989L8 10M22 7C22 4.79086 20.2091 3 18 3M22 7V7C22 4.79086 20.2091 3 18 3V3M18 3C15.7909 3 14 4.79086 14 7M18 3V3C15.7909 3 14 4.79086 14 7V7" fill="none" strokeLinecap="round" strokeLinejoin="round"></path></svg>
                         </button>
                     </Tooltip>
                 </div>
                 <div className='flex h-full relative'>
                     <Tooltip title='新增图层'>
-                        <button>
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="#333" width="24" height="24" fill="#333"><rect x="4.75" y="4.75" width="14.5" height="14.5" rx="7.25" fill="none" stroke-width="1.5"></rect><path d="M12 9V15" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 12H9" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                        <button onClick={() => addLayer()}>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="#333" width="24" height="24" fill="#333"><rect x="4.75" y="4.75" width="14.5" height="14.5" rx="7.25" fill="none" strokeWidth="1.5"></rect><path d="M12 9V15" fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path><path d="M15 12H9" fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path></svg>
                         </button>
                     </Tooltip>
                 </div>
             </div>
 
-            <div className=''>
-                <LayerItem />
+            <div className='mt-2'>
+
+                {
+                    layres.map((item) => {
+                        return (
+                            <LayerItem
+                                key={item.uuid}
+                                {...item}
+                                onSelect={() => handleSelectLayer(item.uuid!)}
+                            />
+                        )
+                    })
+                }
+
             </div>
 
         </article>

@@ -1,8 +1,13 @@
+import { Key } from "react";
 import { DrawLine } from ".";
 
-export type LayerContianer = {
-  name?: string; 
+export type Layer = {
+  uuid?: Key;
+  name?: string;
   visible?: boolean;
-  linePost: DrawLine[];
-  imageSrc: string;
+  opacity?: number;
+  linePost?: DrawLine[];
+  imageSrc?: string;
+  image?: Blob;
+  img?: CanvasImageSource;
 };

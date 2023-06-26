@@ -1,35 +1,26 @@
-import React, { useRef, useState } from 'react'
 import './App.css'
-import { RexDrawEdit, RexDrawStateRef } from './packages'
-import { DrawBrushColor, DrawBrushSize, DrawMode } from './packages/types';
-import { Color } from '@rc-component/color-picker';
+import { RexDrawEdit } from './packages'
 import { Layout } from './components/layout/Layout';
 import { Aside } from './components/layout/Aside';
-import { useDrawStore } from './stores';
+import { useDrawStore, useLayerStore } from './stores';
+import { useEffect } from 'react';
 
 
 function App() {
-  const editor = useRef<RexDrawStateRef>(null);
+  // const editor = useRef<RexDrawStateRef>(null);
 
-  const { drawMode, brushSetting, eraserSetting } = useDrawStore();
+  const { drawMode, brushSetting, eraserSetting, } = useDrawStore();
+  const { layres, selected, setImage } = useLayerStore();
+  const { addLayer } = useLayerStore();
 
+  useEffect(() => {
+    addLayer()
+  }, [])
 
   return (
     <>
-      {/* <div>
-        <button onClick={() => {
-          setMode(DrawMode.BRUSH_MODE)
-        }}>画笔模式</button>
-
-        <button onClick={() => {
-          setMode(DrawMode.ERASER_MODE)
-        }}>橡皮擦</button>
-
-
-        <button onClick={() => {
-          setMode(DrawMode.SELECT_MODE)
-        }}>选择模式</button>
-
+      {/* 
+      <div>
         <button onClick={async () => {
           const url = await editor.current?.exportJpeg();
 
@@ -42,24 +33,8 @@ function App() {
           link.click();
 
         }}>导出图片</button>
-
-        <label>
-          刷笔大小
-          <input min={1} max={100} type='range' onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            var value = e.currentTarget.value;
-            setBrusSize(Number(value));
-          }} />
-        </label>
-     
-
       </div>
-      <div style={{ height: "500px" }}>
-        <RexDrawEdit
-          brushColor={brushColor}
-          brushSize={brushSize}
-          mode={mode}
-          ref={editor} />
-      </div> */}
+      */}
 
       <Layout>
         <main className='flex w-full h-[calc(100%-46px)]'>
@@ -68,6 +43,12 @@ function App() {
               brushSetting={brushSetting}
               eraserSetting={eraserSetting}
               mode={drawMode}
+              layers={layres}
+              currentLayerId={selected}
+              onDrawImage={(imgSrc, imgBlob, img) => {
+                if (!selected) return;
+                setImage(selected, imgBlob, imgSrc, img);
+              }}
             />
           </section>
           <Aside />
