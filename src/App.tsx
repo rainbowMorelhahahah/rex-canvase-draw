@@ -53,6 +53,7 @@ function App() {
                 if (selected) {
                   const current = getLinePoints(selected)
                   if (current) {
+
                     updateLinePoints(
                       selected,
                       [

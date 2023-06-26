@@ -125,6 +125,9 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
         const key = keys.filter(v => v.includes(currentLayerId as string)).shift();
         if (key === undefined) return;
         layerRef.current = layerMap.current.get(key);
+        if (selectedImage) {
+            setSelectedImage(null)
+        }
     }, [currentLayerId])
 
     const shouldDrawingMode = useMemo(() => {
