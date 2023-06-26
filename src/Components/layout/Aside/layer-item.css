@@ -1,0 +1,9 @@
+.repeating {
+  background: repeating-conic-gradient(
+      rgb(215, 215, 215) 0%,
+      rgb(215, 215, 215) 25%,
+      rgb(255, 255, 255) 0%,
+      rgb(255, 255, 255) 50%
+    )
+    50% center / 8px 8px;
+}

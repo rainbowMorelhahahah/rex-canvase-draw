@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { DrawMode } from '../packages/types';
+import { AsideTabContent, DrawMode } from '../packages/types';
 import { RgbColor } from 'react-colorful';
 
 type DrawStore = {
@@ -14,13 +14,14 @@ type DrawStore = {
         size: number,
         opacity: number,
     };
-
+    asideType: AsideTabContent,
     setDrawMode: (mode: DrawMode) => void;
     setBrushSize: (brushSize: number) => void;
     setBrushColor: (brushColor: RgbColor) => void;
     setBrushOpacity: (brushOpacity: number) => void;
     setEraserSize: (eraserSize: number) => void;
     setEraserOpacity: (eraserOpacity: number) => void;
+    setAsideType: (type: AsideTabContent) => void;
 };
 
 const useDrawStore = create<DrawStore>((setState, getState) => {
@@ -35,8 +36,7 @@ const useDrawStore = create<DrawStore>((setState, getState) => {
             size: 5,
             opacity: 60,
         },
-
-
+        asideType: AsideTabContent.LAYER,
         setDrawMode(mode) {
             setState(pre => {
                 return {
@@ -93,6 +93,14 @@ const useDrawStore = create<DrawStore>((setState, getState) => {
                 return {
                     ...pre,
                     eraserSetting
+                }
+            })
+        },
+        setAsideType(type) {
+            setState(pre => {
+                return {
+                    ...pre,
+                    asideType: type
                 }
             })
         },
