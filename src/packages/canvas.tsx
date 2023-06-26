@@ -1,14 +1,22 @@
 
 import React, { memo, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
-import { Stage, Layer as LayerKonva, Rect, Group, Line, Transformer as TransformerKonva } from 'react-konva';
+import {
+    Stage,
+    Layer as LayerKonva,
+    Rect,
+    Group,
+    Line,
+    Transformer as TransformerKonva,
+    Circle
+} from 'react-konva';
 import { Layer } from 'konva/lib/Layer';
 import Konva from 'konva';
 import { KonvaEventObject } from 'konva/lib/Node';
 import { DrawLine, DrawMode } from './types';
-import { Color } from '@rc-component/color-picker';
 import throttle from 'lodash/throttle'
 import { DrawImage } from './Image';
+import { RgbColor } from 'react-colorful';
 
 const CanvasBox = styled.div`
     width: 100%;
@@ -17,8 +25,15 @@ const CanvasBox = styled.div`
 
 type RexDrawStateProps = {
     mode: DrawMode;
-    brushSize?: number;
-    brushColor: Color;
+    brushSetting: {
+        size: number;
+        color: RgbColor;
+        opacity: number
+    };
+    eraserSetting: {
+        size: number,
+        opacity: number
+    }
 }
 export type RexDrawStateRef = {
     layerNode: Layer;
@@ -32,7 +47,7 @@ const throttleFn = throttle((fn) => {
 
 const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props, ref) => {
 
-    const { mode, brushSize = 5, brushColor } = props;
+    const { mode, brushSetting, eraserSetting } = props;
 
     const divRef = useRef<HTMLDivElement>(null);
     const stageRef = useRef<Konva.Stage | null>(null);
@@ -41,6 +56,11 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
     const [stageSize, setStageSize] = useState({
         width: 0,
         height: 0,
+    })
+
+    const [cursorPos, setCursorPos] = useState({
+        x: -100,
+        y: -100
     })
 
     const canvasWidth = stageSize.width || 0;
@@ -99,18 +119,23 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
     }, [mode])
 
     function handleMouseDown(e: KonvaEventObject<PointerEvent>) {
-
         if (shouldDrawingMode) {
             isDrawing.current = true;
+
+            const isBrush = mode === DrawMode.BRUSH_MODE
+
             setLines((pre) => {
                 const pos = e.target.getStage()?.getPointerPosition()!;
+                const { color, size, opacity } = brushSetting;
+                const { size: eSize, opacity: eOpacity } = eraserSetting;
                 return [
                     ...pre,
                     {
                         points: [pos.x - offsetX, pos.y - offsetY],
-                        brushColor,
-                        brushSize,
-                        drawMode: shouldBrushOrEraser
+                        brushColor: color,
+                        brushSize: isBrush ? size : eSize,
+                        drawMode: shouldBrushOrEraser,
+                        opacity: isBrush ? opacity : eOpacity
                     }
                 ]
             })
@@ -119,10 +144,17 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
     }
 
     function handleMouseMove(e: KonvaEventObject<PointerEvent>) {
+        const stage = stageRef.current?.getStage()!;
+        const point = stage.getPointerPosition();
+
+        setCursorPos({
+            x: point!.x,
+            y: point!.y
+        })
+
         if (shouldDrawingMode) {
             if (isDrawing.current) {
-                const stage = stageRef.current?.getStage()!;
-                const point = stage.getPointerPosition();
+
                 const lastLine = lines[lines.length - 1];
 
                 lastLine.points = lastLine.points.concat(
@@ -181,7 +213,8 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
                 width={stageSize.width}
                 height={stageSize.height}
                 style={{
-                    backgroundColor: '#e8e8e8'
+                    backgroundColor: '#e8e8e8',
+                    cursor: 'none'
                 }}
                 onPointerDown={handleMouseDown}
                 onPointerMove={handleMouseMove}
@@ -199,6 +232,14 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
                             fill="#fff"
                         />
                     </Group>
+                    <Circle
+                        x={cursorPos.x}
+                        y={cursorPos.y}
+                        radius={(mode === DrawMode.BRUSH_MODE ? brushSetting.size : 10) / 2}
+                        fill='transparent'
+                        stroke="rgb(0,0,0)"
+                        strokeWidth={2}
+                    />
                 </LayerKonva>
 
                 <LayerKonva
@@ -224,14 +265,12 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
                                         key={`line-${idx}`}
                                         points={line.points}
                                         strokeWidth={line.brushSize}
-                                        stroke={line.brushColor.toRgbString()}
+                                        stroke={`rgba(${line.brushColor.r},${line.brushColor.g},${line.brushColor.b},${line.opacity / 100})`}
                                         lineCap='round'
                                         lineJoin='round'
                                         globalCompositeOperation={line.drawMode}
                                         tension={0.5}
                                     />
-
-
                                 )
                             })
                         }
@@ -269,7 +308,6 @@ const RexDrawEdit = React.forwardRef<RexDrawStateRef, RexDrawStateProps>((props,
 
                     </Group>
                 </LayerKonva>
-
 
             </Stage>
         </CanvasBox>

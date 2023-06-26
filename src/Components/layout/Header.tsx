@@ -46,13 +46,18 @@ function HeaderToolIcon(props: {
 
 function HeaderImpl(props: LayoutProps) {
 
-    const { drawMode, setDrawMode } = useDrawStore();
+    const {
+        drawMode, setDrawMode,
+        brushSetting,
+        eraserSetting,
+        setBrushColor,
+        setBrushSize,
+        setBrushOpacity,
+        setEraserOpacity,
+        setEraserSize
+    } = useDrawStore();
 
-    const [color, setColor] = useState<RgbColor>({
-        r: 0,
-        g: 0,
-        b: 0
-    });
+    const { color: brushColor, size: brushSize, opacity: brushOpacity } = brushSetting;
 
     const isSelectedMode = (targetMode: DrawMode) => {
         return targetMode === drawMode;
@@ -80,10 +85,19 @@ function HeaderImpl(props: LayoutProps) {
                         <h4>Brush settings</h4>
                         <Form layout="vertical">
                             <Form.Item label="Size">
-                                <Slider />
+                                <Slider
+                                    defaultValue={brushSize}
+                                    onChange={(v) => {
+                                        setBrushSize(v);
+                                    }} />
                             </Form.Item>
                             <Form.Item label="Opacity">
-                                <Slider />
+                                <Slider
+                                    defaultValue={brushOpacity}
+                                    onChange={(v) => {
+                                        setBrushOpacity(v)
+                                    }}
+                                />
                             </Form.Item>
                         </Form>
                     </div>
@@ -107,10 +121,16 @@ function HeaderImpl(props: LayoutProps) {
                         <h4>Eraser settings</h4>
                         <Form layout="vertical">
                             <Form.Item label="Size">
-                                <Slider />
+                                <Slider
+                                    defaultValue={eraserSetting.size}
+                                    onChange={(v) => setEraserSize(v)}
+                                />
                             </Form.Item>
                             <Form.Item label="Opacity">
-                                <Slider />
+                                <Slider
+                                    defaultValue={eraserSetting.opacity}
+                                    onChange={(v) => setEraserOpacity(v)}
+                                />
                             </Form.Item>
                         </Form>
                     </div>
@@ -140,16 +160,16 @@ function HeaderImpl(props: LayoutProps) {
                     trigger={['click']}
                     content={
                         <RgbColorPicker
-                            color={color}
+                            color={brushColor}
                             onChange={(v) => {
-                                setColor(v)
+                                setBrushColor(v)
                             }} />
                     }
                 >
                     <div
                         className="w-5 h-5 border cursor-pointer border-solid border-[#e8e8e8]"
                         style={{
-                            backgroundColor: `rgb(${color.r},${color.g},${color.b})`,
+                            backgroundColor: `rgb(${brushColor.r},${brushColor.g},${brushColor.b})`,
                         }}
                     ></div>
                 </Popover>

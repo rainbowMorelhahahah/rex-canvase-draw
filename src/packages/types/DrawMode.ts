@@ -1,5 +1,5 @@
-import { Color } from "@rc-component/color-picker";
 import Konva from "konva";
+import { RgbColor } from "react-colorful";
 
 export enum DrawMode {
   SELECT_MODE,
@@ -10,12 +10,13 @@ export enum DrawMode {
 export type DrawLine = {
   points: number[];
   brushSize: number;
-  brushColor: Color;
+  brushColor: RgbColor;
   drawMode: GlobalCompositeOperation;
+  opacity: number;
 };
 
 export type DrawBrushSize = number;
-export type DrawBrushColor = Color;
+export type DrawBrushColor = RgbColor;
 
 export type DrawImage = {
   image: string; // 存放图片地址,

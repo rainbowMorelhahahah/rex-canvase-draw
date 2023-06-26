@@ -11,12 +11,8 @@ import { useDrawStore } from './stores';
 function App() {
   const editor = useRef<RexDrawStateRef>(null);
 
-  const { drawMode } = useDrawStore();
+  const { drawMode, brushSetting, eraserSetting } = useDrawStore();
 
-  const [brushColor, setBurshColor] = useState<DrawBrushColor>(
-    new Color('#333')
-  );
-  const [brushSize, setBrusSize] = useState<DrawBrushSize>(30);
 
   return (
     <>
@@ -69,8 +65,8 @@ function App() {
         <main className='flex w-full h-[calc(100%-46px)]'>
           <section className='flex-auto h-full'>
             <RexDrawEdit
-              brushColor={brushColor}
-              brushSize={brushSize}
+              brushSetting={brushSetting}
+              eraserSetting={eraserSetting}
               mode={drawMode}
             />
           </section>
